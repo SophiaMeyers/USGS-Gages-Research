@@ -1,0 +1,122 @@
+--------------------------------------------------------------------------------
+Codebook for NHGIS data file 'nhgis0002_ds92_1960_tract'
+--------------------------------------------------------------------------------
+ 
+Contents
+    - Data Summary
+    - Data Dictionary
+    - Citation and Use
+ 
+Additional documentation on NHGIS data sources is available at: 
+    https://www.nhgis.org/documentation/tabular-data 
+ 
+--------------------------------------------------------------------------------
+Data Summary
+--------------------------------------------------------------------------------
+ 
+Year:             1960
+Geographic level: Census Tract (by State--County)
+Extent:           Alabama
+                  Arkansas
+                  Iowa
+                  Kentucky
+                  Mississippi *
+                  Missouri
+                  Nebraska
+                  Oklahoma
+                  Tennessee
+                  West Virginia
+                    * No data available for this requested extent
+Dataset:          1960 Census: Population & Housing Data [Tracts: Major Cities & Surrounds]
+   NHGIS code:    1960_tPH
+   NHGIS ID:      ds92
+ 
+Tables:
+ 
+1. Total Persons
+   Universe:    Persons
+   Source code: NTSUP2
+   NHGIS code:  CA4
+ 
+--------------------------------------------------------------------------------
+Data Dictionary
+--------------------------------------------------------------------------------
+ 
+Context Fields 
+    GISJOIN:     GIS Join Match Code
+    YEAR:        Data File Year
+    STATE:       State Name
+    STATEA:      State Code
+    COUNTY:      County Name
+    COUNTYA:     County Code
+    MSA:         Standard Metropolitan Statistical Area (FIPS Code)
+    PLACE:       Place (FIPS Code)
+    PRETRACTA:   Census Tract Prefix Code
+    TRACTA:      Census Tract Code
+    POSTTRCTA:   Census Tract Suffix Code
+    URBAN:       Urban Area Code 1960
+    AREANAME:    Area Name
+    MCD60:       1960 Minor Civil Division (Census County Division) Code
+    PLACEDC:     Place Description Code (for code list, see https://assets.nhgis.org/original-data/modern-census/07552-Codebook.pdf#page=63)
+    PLACESC60:   1960 Place Size Code (for code list, see https://assets.nhgis.org/original-data/modern-census/07552-Codebook.pdf#page=64)
+    SF1:         Suppression Flag: Total population is less than 5 (tables NTSUP1, NTSUP4, NT1, NT14, NT17-NT21)
+    SF2:         Suppression Flag: Total housing units is less than 5 (tables NTSUP2, NTSUP3, NT2-NT13)
+    SF3:         Suppression Flag: Total housing units is 5 or more but total owner-occupied units is less than 5 (table NT13)
+    SF4:         Suppression Flag: Total housing units is 5 or more but total renter-occupied units is less than 5 (table NT16)
+    SF5:         Suppression Flag: Nonwhite population is less than 400 (tables with this universe in NT22-NT104)
+    SF6:         Suppression Flag: Puerto Rican or Spanish Surname population is less than 400 (tables with this universe in NT22-NT104)
+    GC23:        Split Tract Indicator (0 = not split; {2-4} = full tract created from {2-4} split tracts)
+ 
+Table 1:     Total Persons
+Universe:    Persons
+Source code: NTSUP2
+NHGIS code:  CA4
+    CA4001:      Total
+ 
+--------------------------------------------------------------------------------
+Citation and Use of NHGIS Data
+--------------------------------------------------------------------------------
+ 
+All persons are granted a limited license to use this documentation and the
+accompanying data, subject to the following conditions:
+
+* REDISTRIBUTION: You will not redistribute the data without permission.
+
+  You may publish a subset of the data to meet journal requirements for accessing 
+  data related to a particular publication. Contact us for permission for any other 
+  redistribution; we will consider requests for free and commercial redistribution.
+
+* CITATION: You will cite NHGIS appropriately.
+
+    * Publications and research reports employing NHGIS data (either tabular or GIS) 
+      should include the following citation:
+
+        Jonathan Schroeder, David Van Riper, Steven Manson, Grace Cooper, Zachary Krause, Tracy Kugler, Tsu Zhu, and Steven Ruggles. 
+        IPUMS National Historical Geographic Information System: Version 21.0 
+        [dataset]. Minneapolis, MN: IPUMS. 2026. 
+        http://doi.org/10.18128/D050.V21.0
+
+    * For policy briefs, online resources, or articles in the popular press, we 
+      recommend that you cite the use of NHGIS data as follows:
+
+        IPUMS NHGIS, University of Minnesota, www.nhgis.org.
+
+These terms of use are a legally binding agreement. You can use the data only in 
+accordance with these terms, and any other use is a violation of the agreement. 
+Violations may result in revocation of the agreement and prohibition from using other 
+IPUMS data. If IPUMS or our partners are harmed from your violation, you are 
+responsible for all damages, including reasonable attorney's fees and expenses.
+        
+In addition, we request that users send us a copy of any publications, research
+reports, or educational material making use of the data or documentation.
+
+Send electronic material to: nhgis@umn.edu
+
+Printed matter should be sent to:
+
+    IPUMS NHGIS
+    Institute for Social Research and Data Innovation
+    University of Minnesota
+    50 Willey Hall
+    225 19th Ave S
+    Minneapolis, MN 55455
