@@ -117,3 +117,787 @@ cat("Output file:", OUTPUT_XLSX, "\n")
 
 
 **Now have a file called Processed/Test_States_Data_Combined.xlsx with every states data collected so far in a workbook* called **
+
+**Now creating some graphs in west virginia to see trends over time for each of the rows**
+
+```{r}
+
+library(openxlsx)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+
+
+PROJECT_DIR <- "/Users/sophiameyers/Documents/GitHub/USGS-Gages-Research"
+
+SOURCE_XLSX <- file.path(
+  PROJECT_DIR,
+  "data",
+  "processed",
+  "Test_States_Data_Combined.xlsx"
+)
+PLOT_DIR <- file.path(
+  PROJECT_DIR,
+  "outputs",
+  "WV_trend_plots"
+)
+
+dir.create(
+  PLOT_DIR,
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+
+if (!file.exists(SOURCE_XLSX)) {
+  stop("Source workbook not found: ", SOURCE_XLSX)
+}
+
+
+cat("Reading West Virginia data...\n")
+
+sheets <- getSheetNames(SOURCE_XLSX)
+
+print(sheets)
+
+if (!"WV" %in% sheets) {
+  stop("A worksheet named WV was not found.")
+}
+
+wv <- read.xlsx(
+  SOURCE_XLSX,
+  sheet = "WV",
+  colNames = FALSE,
+  skipEmptyRows = FALSE,
+  skipEmptyCols = FALSE
+)
+
+
+metric_rows <- which(
+  trimws(as.character(wv[[1]])) == "Metric"
+)
+
+cat(
+  "County tables identified:",
+  length(metric_rows),
+  "\n"
+)
+
+if (length(metric_rows) == 0) {
+  stop("No county Metric headers found.")
+}
+
+years <- as.numeric(
+  as.character(
+    unlist(wv[metric_rows[1], 2:9])
+  )
+)
+
+cat("Decades identified:\n")
+print(years)
+
+
+county_tables <- list()
+
+for (i in seq_along(metric_rows)) {
+
+  header_row <- metric_rows[i]
+
+  # County name is three rows above Metric header
+  county_name <- as.character(
+    wv[[1]][header_row - 3]
+  )
+
+  # Determine end of county section
+  next_header <- if (i < length(metric_rows)) {
+    metric_rows[i + 1]
+  } else {
+    nrow(wv) + 1
+  }
+
+  # Metric rows are immediately below header
+  metric_start <- header_row + 1
+  metric_end <- next_header - 1
+
+  # Find first blank row after metric header
+  first_blank <- which(
+    is.na(wv[[1]][metric_start:metric_end]) |
+      trimws(as.character(
+        wv[[1]][metric_start:metric_end]
+      )) == ""
+  )
+
+  if (length(first_blank) > 0) {
+    metric_end <- metric_start + first_blank[1] - 2
+  }
+
+  if (metric_end < metric_start) next
+
+  metric_data <- wv[
+    metric_start:metric_end,
+    1:9,
+    drop = FALSE
+  ]
+
+  for (j in seq_len(nrow(metric_data))) {
+
+    metric_name <- as.character(
+      metric_data[[1]][j]
+    )
+
+    if (is.na(metric_name) || trimws(metric_name) == "") {
+      next
+    }
+
+    values <- suppressWarnings(
+      as.numeric(
+        as.character(
+          unlist(metric_data[j, 2:9])
+        )
+      )
+    )
+
+    county_tables[[length(county_tables) + 1]] <- data.frame(
+      County = county_name,
+      Metric = metric_name,
+      Year = years,
+      Value = values
+    )
+  }
+}
+
+wv_long <- bind_rows(county_tables)
+
+cat("Extracted records:\n")
+print(dim(wv_long))
+
+cat("Metrics identified:\n")
+print(unique(wv_long$Metric))
+
+
+wv_statewide <- wv_long %>%
+  group_by(Metric, Year) %>%
+  summarise(
+    Value = if (all(is.na(Value))) {
+      NA_real_
+    } else {
+      sum(Value, na.rm = TRUE)
+    },
+    Counties_Reporting = sum(!is.na(Value)),
+    .groups = "drop"
+  )
+
+cat("Statewide results:\n")
+
+print(
+  wv_statewide,
+  n = Inf
+)
+
+write.csv(
+  wv_statewide,
+  file.path(PLOT_DIR, "WV_statewide_trends.csv"),
+  row.names = FALSE
+)
+
+
+plots <- list()
+
+column_metrics <- c(
+  "FEMA flood declarations",
+  "NFIP paid claims",
+  "NOAA flood events"
+)
+
+for (metric in unique(wv_statewide$Metric)) {
+
+  plot_data <- wv_statewide %>%
+    filter(Metric == metric) %>%
+    arrange(Year)
+
+  if (metric %in% column_metrics) {
+
+    p <- ggplot(
+      plot_data,
+      aes(x = Year, y = Value)
+    ) +
+      geom_col(
+        na.rm = TRUE
+      )
+
+  } else {
+
+    p <- ggplot(
+      plot_data,
+      aes(x = Year, y = Value)
+    ) +
+      geom_line(
+        linewidth = 0.9,
+        na.rm = TRUE
+      ) +
+      geom_point(
+        size = 2.5,
+        na.rm = TRUE
+      )
+  }
+
+  p <- p +
+    scale_x_continuous(
+      breaks = years
+    ) +
+    labs(
+      title = paste(metric, "- West Virginia"),
+      subtitle = "Statewide sum of county-level values",
+      x = "Decade",
+      y = metric
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(
+        face = "bold",
+        size = 14
+      ),
+      plot.subtitle = element_text(
+        size = 10
+      ),
+      axis.text.x = element_text(
+        angle = 45,
+        hjust = 1
+      ),
+      panel.grid.minor = element_blank()
+    )
+
+  plots[[metric]] <- p
+
+  print(p)
+
+  safe_name <- str_replace_all(
+    tolower(metric),
+    "[^a-z0-9]+",
+    "_"
+  )
+
+  ggsave(
+    filename = file.path(
+      PLOT_DIR,
+      paste0("WV_", safe_name, ".png")
+    ),
+    plot = p,
+    width = 9,
+    height = 5,
+    dpi = 300
+  )
+}
+
+
+```
+**Now have /intermediate/WV_statewide_trends.csv with row total temporally, used to make these graphics and these graphics for WV saved to graphics/WV_trend_plots**
+
+**Next creating the same grpahics but by county**
+
+```{r}
+
+PROJECT_DIR <- "/Users/sophiameyers/Documents/GitHub/USGS-Gages-Research"
+
+SOURCE_XLSX <- file.path(
+  PROJECT_DIR,
+  "data",
+  "processed",
+  "Test_States_Data_Combined.xlsx"
+)
+
+STATE_OUTPUT_DIR <- file.path(
+  PROJECT_DIR,
+  "outputs",
+  "WV_historical_trends"
+)
+
+STATE_PLOT_DIR <- file.path(
+  STATE_OUTPUT_DIR,
+  "Statewide_Graphs"
+)
+
+COUNTY_OUTPUT_DIR <- file.path(
+  PROJECT_DIR,
+  "outputs",
+  "WV_county_historical_trends"
+)
+
+COUNTY_PLOT_DIR <- file.path(
+  COUNTY_OUTPUT_DIR,
+  "County_Comparison_Graphs"
+)
+
+dir.create(
+  STATE_PLOT_DIR,
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+
+dir.create(
+  COUNTY_PLOT_DIR,
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+
+
+
+if (!file.exists(SOURCE_XLSX)) {
+  stop(
+    "Source workbook not found: ",
+    SOURCE_XLSX
+  )
+}
+
+cat("Source workbook found!\n")
+
+sheets <- getSheetNames(SOURCE_XLSX)
+
+cat("Available worksheets:\n")
+print(sheets)
+
+if (!"WV" %in% sheets) {
+  stop("A worksheet named WV was not found.")
+}
+
+
+cat("Reading West Virginia worksheet...\n")
+
+wv <- read.xlsx(
+  SOURCE_XLSX,
+  sheet = "WV",
+  colNames = FALSE,
+  skipEmptyRows = FALSE,
+  skipEmptyCols = FALSE
+)
+
+cat("Worksheet dimensions:\n")
+print(dim(wv))
+
+
+metric_rows <- which(
+  !is.na(wv[[1]]) &
+    trimws(as.character(wv[[1]])) == "Metric"
+)
+
+cat(
+  "County tables identified:",
+  length(metric_rows),
+  "\n"
+)
+
+if (length(metric_rows) == 0) {
+  stop("No county Metric headers found.")
+}
+
+years <- suppressWarnings(
+  as.numeric(
+    as.character(
+      unlist(wv[metric_rows[1], 2:9])
+    )
+  )
+)
+
+cat("Decades identified:\n")
+print(years)
+
+if (length(years) != 8 || any(is.na(years))) {
+  stop("Could not correctly identify the eight decade columns.")
+}
+
+
+
+cat("Extracting county-level data...\n")
+
+county_tables <- list()
+
+for (i in seq_along(metric_rows)) {
+
+  header_row <- metric_rows[i]
+
+  county_name <- as.character(
+    wv[[1]][header_row - 3]
+  )
+
+  if (
+    length(county_name) == 0 ||
+    is.na(county_name) ||
+    trimws(county_name) == ""
+  ) {
+    warning(
+      paste("Could not identify county name at row", header_row)
+    )
+    next
+  }
+
+  county_name <- trimws(county_name)
+
+  next_header <- if (i < length(metric_rows)) {
+    metric_rows[i + 1]
+  } else {
+    nrow(wv) + 1
+  }
+
+  metric_start <- header_row + 1
+  metric_end <- next_header - 1
+
+  if (metric_start > nrow(wv)) next
+
+  first_blank <- which(
+    is.na(wv[[1]][metric_start:metric_end]) |
+      trimws(
+        as.character(wv[[1]][metric_start:metric_end])
+      ) == ""
+  )
+
+  if (length(first_blank) > 0) {
+    metric_end <- metric_start + first_blank[1] - 2
+  }
+
+  if (metric_end < metric_start) next
+
+  metric_data <- wv[
+    metric_start:metric_end,
+    1:9,
+    drop = FALSE
+  ]
+
+  for (j in seq_len(nrow(metric_data))) {
+
+    metric_name <- as.character(
+      metric_data[[1]][j]
+    )
+
+    if (
+      length(metric_name) == 0 ||
+      is.na(metric_name) ||
+      trimws(metric_name) == ""
+    ) {
+      next
+    }
+
+    values <- suppressWarnings(
+      as.numeric(
+        as.character(
+          unlist(metric_data[j, 2:9])
+        )
+      )
+    )
+
+    if (length(values) != length(years)) {
+      warning(
+        paste(
+          "Unexpected number of decade values for",
+          county_name,
+          "-",
+          metric_name
+        )
+      )
+      next
+    }
+
+    county_tables[[length(county_tables) + 1]] <- data.frame(
+      County = rep(county_name, length(years)),
+      Metric = rep(trimws(metric_name), length(years)),
+      Year = years,
+      Value = values
+    )
+  }
+}
+
+wv_long <- bind_rows(county_tables)
+
+wv_long <- wv_long %>%
+  filter(
+    !is.na(County),
+    trimws(County) != "",
+    !is.na(Metric),
+    trimws(Metric) != ""
+  )
+
+cat("Extraction complete!\n")
+
+cat(
+  "Counties extracted:",
+  length(unique(wv_long$County)),
+  "\n"
+)
+
+cat("County names:\n")
+print(sort(unique(wv_long$County)))
+
+cat("Metric names:\n")
+print(unique(wv_long$Metric))
+
+
+wv_long <- bind_rows(county_tables) %>%
+  filter(
+    !is.na(County),
+    trimws(County) != "",
+    !is.na(Metric),
+    trimws(Metric) != ""
+  )
+
+cat("\nExtraction complete!\n")
+
+cat(
+  "Counties extracted:",
+  length(unique(wv_long$County)),
+  "\n"
+)
+
+cat(
+  "Metrics extracted:",
+  length(unique(wv_long$Metric)),
+  "\n"
+)
+
+cat("\nCounty names:\n")
+print(sort(unique(wv_long$County)))
+
+cat("\nMetric names:\n")
+print(unique(wv_long$Metric))
+
+
+write.csv(
+  wv_long,
+  file.path(
+    COUNTY_OUTPUT_DIR,
+    "WV_county_level_data.csv"
+  ),
+  row.names = FALSE,
+  na = ""
+)
+
+
+wv_statewide <- wv_long %>%
+  group_by(Metric, Year) %>%
+  summarise(
+
+    Value = if (all(is.na(Value))) {
+      NA_real_
+    } else {
+      sum(Value, na.rm = TRUE)
+    },
+
+    Counties_Reporting = sum(!is.na(Value)),
+
+    .groups = "drop"
+  )
+
+cat("\nStatewide summary:\n")
+
+print(
+  wv_statewide,
+  n = Inf
+)
+
+
+write.csv(
+  wv_statewide,
+  file.path(
+    STATE_OUTPUT_DIR,
+    "WV_statewide_trends.csv"
+  ),
+  row.names = FALSE,
+  na = ""
+)
+
+
+cat("\nCreating statewide graphs...\n")
+
+state_plots <- list()
+
+column_metrics <- c(
+  "FEMA flood declarations",
+  "NFIP paid claims",
+  "NOAA flood events"
+)
+
+for (metric in unique(wv_statewide$Metric)) {
+
+  plot_data <- wv_statewide %>%
+    filter(Metric == metric) %>%
+    arrange(Year)
+
+  if (metric %in% column_metrics) {
+
+    p <- ggplot(
+      plot_data,
+      aes(x = Year, y = Value)
+    ) +
+      geom_col(
+        na.rm = TRUE
+      )
+
+  } else {
+
+    p <- ggplot(
+      plot_data,
+      aes(x = Year, y = Value)
+    ) +
+      geom_line(
+        linewidth = 0.9,
+        na.rm = TRUE
+      ) +
+      geom_point(
+        size = 2.5,
+        na.rm = TRUE
+      )
+  }
+
+  p <- p +
+    scale_x_continuous(
+      breaks = years
+    ) +
+    labs(
+      title = paste(metric, "- West Virginia"),
+      subtitle = "Statewide sum of county-level values",
+      x = "Decade",
+      y = metric
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(
+        face = "bold",
+        size = 14
+      ),
+      plot.subtitle = element_text(
+        size = 10
+      ),
+      axis.text.x = element_text(
+        angle = 45,
+        hjust = 1
+      ),
+      panel.grid.minor = element_blank()
+    )
+
+  state_plots[[metric]] <- p
+
+  print(p)
+
+  safe_name <- str_replace_all(
+    tolower(metric),
+    "[^a-z0-9]+",
+    "_"
+  )
+
+  ggsave(
+    filename = file.path(
+      STATE_PLOT_DIR,
+      paste0("WV_", safe_name, ".png")
+    ),
+    plot = p,
+    width = 9,
+    height = 5,
+    dpi = 300
+  )
+}
+
+
+cat("\nCreating county comparison graphs...\n")
+
+county_plots <- list()
+
+for (metric in unique(wv_long$Metric)) {
+
+  plot_data <- wv_long %>%
+    filter(
+      Metric == metric,
+      !is.na(County),
+      trimws(County) != ""
+    ) %>%
+    arrange(County, Year)
+
+  p <- ggplot(
+    plot_data,
+    aes(
+      x = Year,
+      y = Value,
+      color = County,
+      group = County
+    )
+  ) +
+
+    geom_line(
+      linewidth = 0.8,
+      na.rm = TRUE
+    ) +
+
+    geom_point(
+      size = 1.8,
+      na.rm = TRUE
+    ) +
+
+    scale_x_continuous(
+      breaks = years
+    ) +
+
+    labs(
+      title = paste(
+        metric,
+        "- West Virginia Counties"
+      ),
+      subtitle = "Historical comparison across counties",
+      x = "Decade",
+      y = metric,
+      color = "County"
+    ) +
+
+    theme_minimal() +
+
+    theme(
+      plot.title = element_text(
+        face = "bold",
+        size = 14
+      ),
+
+      plot.subtitle = element_text(
+        size = 10
+      ),
+
+      axis.text.x = element_text(
+        angle = 45,
+        hjust = 1
+      ),
+
+      legend.position = "right",
+
+      legend.text = element_text(
+        size = 8
+      ),
+
+      panel.grid.minor = element_blank()
+    )
+
+  county_plots[[metric]] <- p
+
+  print(p)
+
+  safe_name <- str_replace_all(
+    tolower(metric),
+    "[^a-z0-9]+",
+    "_"
+  )
+
+  ggsave(
+    filename = file.path(
+      COUNTY_PLOT_DIR,
+      paste0(
+        "WV_counties_",
+        safe_name,
+        ".png"
+      )
+    ),
+    plot = p,
+    width = 12,
+    height = 7,
+    dpi = 300
+  )
+}
+
+
+```
+
+
+
+

@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Combining data into tables for WV</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Combining data into tables for WV_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Combining data into tables for WV_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="Combining data into tables for WV_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="Combining data into tables for WV_files/libs/quarto-html/popper.min.js"></script>
+<script src="Combining data into tables for WV_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Combining data into tables for WV_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Combining data into tables for WV_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Combining data into tables for WV_files/libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Combining data into tables for WV_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Combining data into tables for WV_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Combining data into tables for WV_files/libs/bootstrap/bootstrap-917079515d91bccb85b543faf8aa8bb6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Combining data into tables for WV</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><strong>This is processing a generated xlxs spreadsheet for all 10 states counties data collected and focusing just on wv to see how we might analyze what weve collected</strong></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(openxlsx)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>PROJECT_DIR <span class="ot">&lt;-</span> <span class="st">"/Users/sophiameyers/Documents/GitHub/USGS-Gages-Research"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Generated workbook containing all 10 states</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>SOURCE_XLSX <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  PROJECT_DIR,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"data"</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"intermediate"</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"GENERATED_Historical_Floods_Population_Streamgages_10_States.xlsx"</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>OUTPUT_XLSX <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  PROJECT_DIR,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"West_Virginia_Historical_Floods.xlsx"</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>all_sheets <span class="ot">&lt;-</span> <span class="fu">getSheetNames</span>(SOURCE_XLSX)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>state_codes <span class="ot">&lt;-</span> <span class="fu">unique</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">substr</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    all_sheets[<span class="fu">grepl</span>(<span class="st">"^[A-Z]{2}_"</span>, all_sheets)],</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="dv">2</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>state_codes <span class="ot">&lt;-</span> <span class="fu">sort</span>(state_codes)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"States identified:"</span>, <span class="fu">length</span>(state_codes), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>States identified: 10 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(state_codes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "AL" "AR" "IA" "KY" "MO" "MS" "NE" "OK" "TN" "WV"</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>wb <span class="ot">&lt;-</span> <span class="fu">createWorkbook</span>()</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (state <span class="cf">in</span> state_codes) {</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Processing state:"</span>, state, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  state_sheets <span class="ot">&lt;-</span> all_sheets[</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">grepl</span>(<span class="fu">paste0</span>(<span class="st">"^"</span>, state, <span class="st">"_"</span>), all_sheets)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  ]</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">addWorksheet</span>(wb, state)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  current_row <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (sheet_name <span class="cf">in</span> state_sheets) {</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"  Processing:"</span>, sheet_name, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    county_data <span class="ot">&lt;-</span> <span class="fu">read.xlsx</span>(</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>      SOURCE_XLSX,</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>      <span class="at">sheet =</span> sheet_name,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>      <span class="at">rows =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">13</span>,</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">cols =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>,</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>      <span class="at">colNames =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">skipEmptyRows =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>      <span class="at">skipEmptyCols =</span> <span class="cn">FALSE</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    county_data <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(county_data)</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> (<span class="fu">ncol</span>(county_data) <span class="sc">&lt;</span> <span class="dv">9</span>) {</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>      county_data[[<span class="fu">ncol</span>(county_data) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">writeData</span>(</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>      wb,</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>      <span class="at">sheet =</span> state,</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> county_data,</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>      <span class="at">startRow =</span> current_row,</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>      <span class="at">startCol =</span> <span class="dv">1</span>,</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>      <span class="at">colNames =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>      <span class="at">rowNames =</span> <span class="cn">FALSE</span></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>    current_row <span class="ot">&lt;-</span> current_row <span class="sc">+</span> <span class="dv">15</span></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>    <span class="st">"  County sections:"</span>,</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>    <span class="fu">length</span>(state_sheets),</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>    <span class="st">"</span><span class="sc">\n</span><span class="st">"</span></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Processing state: AL 
+  Processing: AL_Lamar 
+  Processing: AL_Clarke 
+  Processing: AL_Tallapoosa 
+  Processing: AL_Lawrence 
+  Processing: AL_Franklin 
+  Processing: AL_Marshall 
+  Processing: AL_Hale 
+  Processing: AL_Perry 
+  Processing: AL_Colbert 
+  Processing: AL_Randolph 
+  Processing: AL_Montgomery 
+  Processing: AL_Cullman 
+  Processing: AL_Lowndes 
+  Processing: AL_Russell 
+  Processing: AL_Crenshaw 
+  Processing: AL_Lauderdale 
+  Processing: AL_Conecuh 
+  Processing: AL_Chilton 
+  Processing: AL_Coffee 
+  Processing: AL_Elmore 
+  Processing: AL_Butler 
+  Processing: AL_Blount 
+  Processing: AL_Barbour 
+  Processing: AL_Escambia 
+  Processing: AL_Jackson 
+  Processing: AL_Greene 
+  Processing: AL_Calhoun 
+  Processing: AL_Jefferson 
+  Processing: AL_Walker 
+  Processing: AL_Washington 
+  Processing: AL_Madison 
+  Processing: AL_DeKalb 
+  Processing: AL_Coosa 
+  Processing: AL_Bibb 
+  Processing: AL_Macon 
+  Processing: AL_Bullock 
+  Processing: AL_Autauga 
+  Processing: AL_Henry 
+  Processing: AL_Covington 
+  Processing: AL_Monroe 
+  Processing: AL_Dale 
+  Processing: AL_Pickens 
+  Processing: AL_Baldwin 
+  Processing: AL_Shelby 
+  Processing: AL_Houston 
+  Processing: AL_St. Clair 
+  Processing: AL_Geneva 
+  Processing: AL_Clay 
+  Processing: AL_Talladega 
+  Processing: AL_Choctaw 
+  Processing: AL_Cherokee 
+  Processing: AL_Cleburne 
+  Processing: AL_Sumter 
+  Processing: AL_Winston 
+  Processing: AL_Lee 
+  Processing: AL_Pike 
+  Processing: AL_Morgan 
+  Processing: AL_Marion 
+  Processing: AL_Limestone 
+  Processing: AL_Etowah 
+  Processing: AL_Marengo 
+  Processing: AL_Mobile 
+  Processing: AL_Fayette 
+  Processing: AL_Chambers 
+  Processing: AL_Dallas 
+  Processing: AL_Tuscaloosa 
+  Processing: AL_Wilcox 
+  County sections: 67 
+Processing state: AR 
+  Processing: AR_Madison 
+  Processing: AR_Poinsett 
+  Processing: AR_Boone 
+  Processing: AR_Mississippi 
+  Processing: AR_Grant 
+  Processing: AR_Lafayette 
+  Processing: AR_Cross 
+  Processing: AR_Phillips 
+  Processing: AR_Randolph 
+  Processing: AR_Lawrence 
+  Processing: AR_Clay 
+  Processing: AR_Faulkner 
+  Processing: AR_Howard 
+  Processing: AR_Nevada 
+  Processing: AR_Union 
+  Processing: AR_Izard 
+  Processing: AR_Greene 
+  Processing: AR_White 
+  Processing: AR_Crittenden 
+  Processing: AR_Arkansas 
+  Processing: AR_Ouachita 
+  Processing: AR_Yell 
+  Processing: AR_Sharp 
+  Processing: AR_Independence 
+  Processing: AR_Lonoke 
+  Processing: AR_Lee 
+  Processing: AR_Craighead 
+  Processing: AR_Washington 
+  Processing: AR_Woodruff 
+  Processing: AR_Garland 
+  Processing: AR_Van Buren 
+  Processing: AR_Johnson 
+  Processing: AR_Little River 
+  Processing: AR_Calhoun 
+  Processing: AR_Prairie 
+  Processing: AR_Bradley 
+  Processing: AR_Scott 
+  Processing: AR_Drew 
+  Processing: AR_Pike 
+  Processing: AR_Saline 
+  Processing: AR_Newton 
+  Processing: AR_Searcy 
+  Processing: AR_Conway 
+  Processing: AR_Stone 
+  Processing: AR_Cleveland 
+  Processing: AR_Clark 
+  Processing: AR_Carroll 
+  Processing: AR_Monroe 
+  Processing: AR_St. Francis 
+  Processing: AR_Montgomery 
+  Processing: AR_Cleburne 
+  Processing: AR_Hot Spring 
+  Processing: AR_Columbia 
+  Processing: AR_Polk 
+  Processing: AR_Crawford 
+  Processing: AR_Jackson 
+  Processing: AR_Perry 
+  Processing: AR_Chicot 
+  Processing: AR_Pope 
+  Processing: AR_Marion 
+  Processing: AR_Benton 
+  Processing: AR_Ashley 
+  Processing: AR_Desha 
+  Processing: AR_Baxter 
+  Processing: AR_Dallas 
+  Processing: AR_Sebastian 
+  Processing: AR_Pulaski 
+  Processing: AR_Fulton 
+  Processing: AR_Logan 
+  Processing: AR_Miller 
+  Processing: AR_Franklin 
+  Processing: AR_Sevier 
+  Processing: AR_Jefferson 
+  Processing: AR_Lincoln 
+  Processing: AR_Hempstead 
+  County sections: 75 
+Processing state: IA 
+  Processing: IA_Jasper 
+  Processing: IA_Plymouth 
+  Processing: IA_Pottawattamie 
+  Processing: IA_Wapello 
+  Processing: IA_Buchanan 
+  Processing: IA_Dubuque 
+  Processing: IA_Poweshiek 
+  Processing: IA_Boone 
+  Processing: IA_Keokuk 
+  Processing: IA_Emmet 
+  Processing: IA_Linn 
+  Processing: IA_Dickinson 
+  Processing: IA_Wright 
+  Processing: IA_Union 
+  Processing: IA_Cherokee 
+  Processing: IA_Hardin 
+  Processing: IA_Lyon 
+  Processing: IA_Adams 
+  Processing: IA_Winneshiek 
+  Processing: IA_Henry 
+  Processing: IA_Bremer 
+  Processing: IA_O'Brien 
+  Processing: IA_Howard 
+  Processing: IA_Shelby 
+  Processing: IA_Benton 
+  Processing: IA_Guthrie 
+  Processing: IA_Washington 
+  Processing: IA_Marion 
+  Processing: IA_Sac 
+  Processing: IA_Mahaska 
+  Processing: IA_Lee 
+  Processing: IA_Fremont 
+  Processing: IA_Kossuth 
+  Processing: IA_Harrison 
+  Processing: IA_Webster 
+  Processing: IA_Jefferson 
+  Processing: IA_Madison 
+  Processing: IA_Clarke 
+  Processing: IA_Fayette 
+  Processing: IA_Warren 
+  Processing: IA_Pocahontas 
+  Processing: IA_Taylor 
+  Processing: IA_Page 
+  Processing: IA_Clay 
+  Processing: IA_Adair 
+  Processing: IA_Lucas 
+  Processing: IA_Sioux 
+  Processing: IA_Woodbury 
+  Processing: IA_Mitchell 
+  Processing: IA_Ida 
+  Processing: IA_Cass 
+  Processing: IA_Osceola 
+  Processing: IA_Winnebago 
+  Processing: IA_Johnson 
+  Processing: IA_Jackson 
+  Processing: IA_Muscatine 
+  Processing: IA_Grundy 
+  Processing: IA_Calhoun 
+  Processing: IA_Appanoose 
+  Processing: IA_Cedar 
+  Processing: IA_Carroll 
+  Processing: IA_Marshall 
+  Processing: IA_Delaware 
+  Processing: IA_Davis 
+  Processing: IA_Monona 
+  Processing: IA_Humboldt 
+  Processing: IA_Buena Vista 
+  Processing: IA_Mills 
+  Processing: IA_Dallas 
+  Processing: IA_Cerro Gordo 
+  Processing: IA_Greene 
+  Processing: IA_Des Moines 
+  Processing: IA_Scott 
+  Processing: IA_Polk 
+  Processing: IA_Clayton 
+  Processing: IA_Floyd 
+  Processing: IA_Audubon 
+  Processing: IA_Iowa 
+  Processing: IA_Butler 
+  Processing: IA_Louisa 
+  Processing: IA_Decatur 
+  Processing: IA_Montgomery 
+  Processing: IA_Wayne 
+  Processing: IA_Tama 
+  Processing: IA_Monroe 
+  Processing: IA_Jones 
+  Processing: IA_Hamilton 
+  Processing: IA_Franklin 
+  Processing: IA_Palo Alto 
+  Processing: IA_Ringgold 
+  Processing: IA_Clinton 
+  Processing: IA_Story 
+  Processing: IA_Worth 
+  Processing: IA_Allamakee 
+  Processing: IA_Crawford 
+  Processing: IA_Black Hawk 
+  Processing: IA_Chickasaw 
+  Processing: IA_Hancock 
+  Processing: IA_Van Buren 
+  County sections: 99 
+Processing state: KY 
+  Processing: KY_Ballard 
+  Processing: KY_Henry 
+  Processing: KY_Mercer 
+  Processing: KY_Lewis 
+  Processing: KY_Trigg 
+  Processing: KY_Christian 
+  Processing: KY_Grayson 
+  Processing: KY_Simpson 
+  Processing: KY_Carroll 
+  Processing: KY_Butler 
+  Processing: KY_Madison 
+  Processing: KY_Bourbon 
+  Processing: KY_Magoffin 
+  Processing: KY_Marion 
+  Processing: KY_Logan 
+  Processing: KY_Barren 
+  Processing: KY_Harlan 
+  Processing: KY_Boone 
+  Processing: KY_Washington 
+  Processing: KY_Mason 
+  Processing: KY_Jefferson 
+  Processing: KY_Martin 
+  Processing: KY_Owsley 
+  Processing: KY_Edmonson 
+  Processing: KY_Daviess 
+  Processing: KY_Powell 
+  Processing: KY_Jessamine 
+  Processing: KY_Monroe 
+  Processing: KY_Knox 
+  Processing: KY_Calloway 
+  Processing: KY_Jackson 
+  Processing: KY_Lawrence 
+  Processing: KY_Morgan 
+  Processing: KY_Muhlenberg 
+  Processing: KY_Bracken 
+  Processing: KY_Breathitt 
+  Processing: KY_Perry 
+  Processing: KY_Grant 
+  Processing: KY_Taylor 
+  Processing: KY_Clay 
+  Processing: KY_Leslie 
+  Processing: KY_Lyon 
+  Processing: KY_Nicholas 
+  Processing: KY_Campbell 
+  Processing: KY_Cumberland 
+  Processing: KY_Allen 
+  Processing: KY_Lee 
+  Processing: KY_Robertson 
+  Processing: KY_Laurel 
+  Processing: KY_Clark 
+  Processing: KY_Meade 
+  Processing: KY_Nelson 
+  Processing: KY_Owen 
+  Processing: KY_Hart 
+  Processing: KY_Lincoln 
+  Processing: KY_Elliott 
+  Processing: KY_Woodford 
+  Processing: KY_Bath 
+  Processing: KY_Montgomery 
+  Processing: KY_Larue 
+  Processing: KY_Boyle 
+  Processing: KY_Estill 
+  Processing: KY_Whitley 
+  Processing: KY_Franklin 
+  Processing: KY_Menifee 
+  Processing: KY_Marshall 
+  Processing: KY_Todd 
+  Processing: KY_Floyd 
+  Processing: KY_Fayette 
+  Processing: KY_Hancock 
+  Processing: KY_Greenup 
+  Processing: KY_Casey 
+  Processing: KY_Metcalfe 
+  Processing: KY_Russell 
+  Processing: KY_Rockcastle 
+  Processing: KY_Trimble 
+  Processing: KY_Graves 
+  Processing: KY_Hopkins 
+  Processing: KY_Bell 
+  Processing: KY_Warren 
+  Processing: KY_Hickman 
+  Processing: KY_Clinton 
+  Processing: KY_McLean 
+  Processing: KY_Rowan 
+  Processing: KY_Wayne 
+  Processing: KY_Johnson 
+  Processing: KY_Pike 
+  Processing: KY_Pulaski 
+  Processing: KY_Webster 
+  Processing: KY_Livingston 
+  Processing: KY_Shelby 
+  Processing: KY_McCracken 
+  Processing: KY_Union 
+  Processing: KY_Ohio 
+  Processing: KY_Carter 
+  Processing: KY_Scott 
+  Processing: KY_Breckinridge 
+  Processing: KY_Carlisle 
+  Processing: KY_Anderson 
+  Processing: KY_Oldham 
+  Processing: KY_Caldwell 
+  Processing: KY_Crittenden 
+  Processing: KY_Knott 
+  Processing: KY_Fulton 
+  Processing: KY_Hardin 
+  Processing: KY_Green 
+  Processing: KY_Wolfe 
+  Processing: KY_Boyd 
+  Processing: KY_Adair 
+  Processing: KY_Gallatin 
+  Processing: KY_Harrison 
+  Processing: KY_Bullitt 
+  Processing: KY_Henderson 
+  Processing: KY_Kenton 
+  Processing: KY_Fleming 
+  Processing: KY_McCreary 
+  Processing: KY_Pendleton 
+  Processing: KY_Spencer 
+  Processing: KY_Letcher 
+  Processing: KY_Garrard 
+  County sections: 120 
+Processing state: MO 
+  Processing: MO_Christian 
+  Processing: MO_Dallas 
+  Processing: MO_Schuyler 
+  Processing: MO_Randolph 
+  Processing: MO_Knox 
+  Processing: MO_Livingston 
+  Processing: MO_Moniteau 
+  Processing: MO_Callaway 
+  Processing: MO_Ray 
+  Processing: MO_Miller 
+  Processing: MO_Laclede 
+  Processing: MO_Ozark 
+  Processing: MO_Butler 
+  Processing: MO_Scotland 
+  Processing: MO_Crawford 
+  Processing: MO_Clark 
+  Processing: MO_Worth 
+  Processing: MO_Cooper 
+  Processing: MO_Bates 
+  Processing: MO_Pettis 
+  Processing: MO_Macon 
+  Processing: MO_Daviess 
+  Processing: MO_Polk 
+  Processing: MO_Howell 
+  Processing: MO_St. Clair 
+  Processing: MO_Mercer 
+  Processing: MO_Maries 
+  Processing: MO_Lawrence 
+  Processing: MO_Cole 
+  Processing: MO_Cedar 
+  Processing: MO_Johnson 
+  Processing: MO_Shelby 
+  Processing: MO_Shannon 
+  Processing: MO_Jasper 
+  Processing: MO_Newton 
+  Processing: MO_Gasconade 
+  Processing: MO_Ripley 
+  Processing: MO_Ralls 
+  Processing: MO_Andrew 
+  Processing: MO_Montgomery 
+  Processing: MO_Pike 
+  Processing: MO_Scott 
+  Processing: MO_Stone 
+  Processing: MO_Wright 
+  Processing: MO_Audrain 
+  Processing: MO_Holt 
+  Processing: MO_Saline 
+  Processing: MO_Franklin 
+  Processing: MO_DeKalb 
+  Processing: MO_Iron 
+  Processing: MO_Taney 
+  Processing: MO_Linn 
+  Processing: MO_Howard 
+  Processing: MO_Boone 
+  Processing: MO_Hickory 
+  Processing: MO_Barry 
+  Processing: MO_Osage 
+  Processing: MO_Chariton 
+  Processing: MO_Pemiscot 
+  Processing: MO_St. Louis 
+  Processing: MO_Jefferson 
+  Processing: MO_Lincoln 
+  Processing: MO_Phelps 
+  Processing: MO_Morgan 
+  Processing: MO_Greene 
+  Processing: MO_St. Charles 
+  Processing: MO_Benton 
+  Processing: MO_Dent 
+  Processing: MO_Gentry 
+  Processing: MO_Harrison 
+  Processing: MO_Cass 
+  Processing: MO_Douglas 
+  Processing: MO_Sullivan 
+  Processing: MO_Nodaway 
+  Processing: MO_Bollinger 
+  Processing: MO_Madison 
+  Processing: MO_Warren 
+  Processing: MO_Henry 
+  Processing: MO_Wayne 
+  Processing: MO_Carter 
+  Processing: MO_Cape Girardeau 
+  Processing: MO_Mississippi 
+  Processing: MO_Reynolds 
+  Processing: MO_Clay 
+  Processing: MO_Grundy 
+  Processing: MO_Webster 
+  Processing: MO_McDonald 
+  Processing: MO_Atchison 
+  Processing: MO_Stoddard 
+  Processing: MO_Oregon 
+  Processing: MO_Washington 
+  Processing: MO_Perry 
+  Processing: MO_Lafayette 
+  Processing: MO_Ste. Genevieve 
+  Processing: MO_Marion 
+  Processing: MO_St. Francois 
+  Processing: MO_Clinton 
+  Processing: MO_Putnam 
+  Processing: MO_Platte 
+  Processing: MO_Buchanan 
+  Processing: MO_Dade 
+  Processing: MO_Pulaski 
+  Processing: MO_Barton 
+  Processing: MO_Vernon 
+  Processing: MO_Caldwell 
+  Processing: MO_Lewis 
+  Processing: MO_Dunklin 
+  Processing: MO_Monroe 
+  Processing: MO_Jackson 
+  Processing: MO_Texas 
+  Processing: MO_Adair 
+  Processing: MO_St. Louis_1 
+  Processing: MO_Carroll 
+  Processing: MO_New Madrid 
+  Processing: MO_Camden 
+  County sections: 115 
+Processing state: MS 
+  Processing: MS_Winston 
+  Processing: MS_Humphreys 
+  Processing: MS_Wayne 
+  Processing: MS_Lamar 
+  Processing: MS_Marshall 
+  Processing: MS_Calhoun 
+  Processing: MS_Greene 
+  Processing: MS_Grenada 
+  Processing: MS_Wilkinson 
+  Processing: MS_Leake 
+  Processing: MS_Clay 
+  Processing: MS_Franklin 
+  Processing: MS_Hancock 
+  Processing: MS_Holmes 
+  Processing: MS_Oktibbeha 
+  Processing: MS_Tallahatchie 
+  Processing: MS_Sharkey 
+  Processing: MS_Tate 
+  Processing: MS_Leflore 
+  Processing: MS_Jefferson Davis 
+  Processing: MS_Neshoba 
+  Processing: MS_Lee 
+  Processing: MS_Hinds 
+  Processing: MS_Pontotoc 
+  Processing: MS_Washington 
+  Processing: MS_Issaquena 
+  Processing: MS_Yalobusha 
+  Processing: MS_Clarke 
+  Processing: MS_Claiborne 
+  Processing: MS_Warren 
+  Processing: MS_Tippah 
+  Processing: MS_Jackson 
+  Processing: MS_Panola 
+  Processing: MS_DeSoto 
+  Processing: MS_Noxubee 
+  Processing: MS_Jefferson 
+  Processing: MS_Lauderdale 
+  Processing: MS_Lincoln 
+  Processing: MS_Pike 
+  Processing: MS_Prentiss 
+  Processing: MS_Tishomingo 
+  Processing: MS_Tunica 
+  Processing: MS_Copiah 
+  Processing: MS_Covington 
+  Processing: MS_Smith 
+  Processing: MS_Simpson 
+  Processing: MS_Stone 
+  Processing: MS_Scott 
+  Processing: MS_Rankin 
+  Processing: MS_Marion 
+  Processing: MS_George 
+  Processing: MS_Jasper 
+  Processing: MS_Jones 
+  Processing: MS_Union 
+  Processing: MS_Adams 
+  Processing: MS_Itawamba 
+  Processing: MS_Pearl River 
+  Processing: MS_Perry 
+  Processing: MS_Kemper 
+  Processing: MS_Benton 
+  Processing: MS_Coahoma 
+  Processing: MS_Harrison 
+  Processing: MS_Choctaw 
+  Processing: MS_Amite 
+  Processing: MS_Forrest 
+  Processing: MS_Alcorn 
+  Processing: MS_Lafayette 
+  Processing: MS_Yazoo 
+  Processing: MS_Madison 
+  Processing: MS_Sunflower 
+  Processing: MS_Lawrence 
+  Processing: MS_Newton 
+  Processing: MS_Chickasaw 
+  Processing: MS_Quitman 
+  Processing: MS_Attala 
+  Processing: MS_Lowndes 
+  Processing: MS_Walthall 
+  Processing: MS_Carroll 
+  Processing: MS_Montgomery 
+  Processing: MS_Bolivar 
+  Processing: MS_Webster 
+  Processing: MS_Monroe 
+  County sections: 82 
+Processing state: NE 
+  Processing: NE_Wheeler 
+  Processing: NE_Fillmore 
+  Processing: NE_Hooker 
+  Processing: NE_Cass 
+  Processing: NE_Dixon 
+  Processing: NE_Webster 
+  Processing: NE_Dakota 
+  Processing: NE_Johnson 
+  Processing: NE_Howard 
+  Processing: NE_Pierce 
+  Processing: NE_Platte 
+  Processing: NE_Washington 
+  Processing: NE_Sherman 
+  Processing: NE_Knox 
+  Processing: NE_Cheyenne 
+  Processing: NE_Garden 
+  Processing: NE_Harlan 
+  Processing: NE_Deuel 
+  Processing: NE_Dawes 
+  Processing: NE_Douglas 
+  Processing: NE_Holt 
+  Processing: NE_Dundy 
+  Processing: NE_Antelope 
+  Processing: NE_Keya Paha 
+  Processing: NE_Banner 
+  Processing: NE_McPherson 
+  Processing: NE_Red Willow 
+  Processing: NE_Otoe 
+  Processing: NE_Frontier 
+  Processing: NE_Franklin 
+  Processing: NE_Nance 
+  Processing: NE_Rock 
+  Processing: NE_Pawnee 
+  Processing: NE_Butler 
+  Processing: NE_Perkins 
+  Processing: NE_Box Butte 
+  Processing: NE_Thurston 
+  Processing: NE_Hayes 
+  Processing: NE_Morrill 
+  Processing: NE_Blaine 
+  Processing: NE_Sioux 
+  Processing: NE_Dodge 
+  Processing: NE_Chase 
+  Processing: NE_Furnas 
+  Processing: NE_Gage 
+  Processing: NE_Brown 
+  Processing: NE_Cuming 
+  Processing: NE_Lancaster 
+  Processing: NE_Nuckolls 
+  Processing: NE_Hall 
+  Processing: NE_Hamilton 
+  Processing: NE_Loup 
+  Processing: NE_Boyd 
+  Processing: NE_Custer 
+  Processing: NE_Dawson 
+  Processing: NE_Arthur 
+  Processing: NE_Clay 
+  Processing: NE_Kimball 
+  Processing: NE_Madison 
+  Processing: NE_York 
+  Processing: NE_Garfield 
+  Processing: NE_Scotts Bluff 
+  Processing: NE_Saunders 
+  Processing: NE_Stanton 
+  Processing: NE_Wayne 
+  Processing: NE_Nemaha 
+  Processing: NE_Boone 
+  Processing: NE_Sarpy 
+  Processing: NE_Burt 
+  Processing: NE_Buffalo 
+  Processing: NE_Thomas 
+  Processing: NE_Seward 
+  Processing: NE_Logan 
+  Processing: NE_Merrick 
+  Processing: NE_Sheridan 
+  Processing: NE_Polk 
+  Processing: NE_Richardson 
+  Processing: NE_Keith 
+  Processing: NE_Phelps 
+  Processing: NE_Thayer 
+  Processing: NE_Grant 
+  Processing: NE_Greeley 
+  Processing: NE_Jefferson 
+  Processing: NE_Saline 
+  Processing: NE_Adams 
+  Processing: NE_Colfax 
+  Processing: NE_Lincoln 
+  Processing: NE_Kearney 
+  Processing: NE_Hitchcock 
+  Processing: NE_Cedar 
+  Processing: NE_Cherry 
+  Processing: NE_Valley 
+  Processing: NE_Gosper 
+  County sections: 93 
+Processing state: OK 
+  Processing: OK_Kiowa 
+  Processing: OK_Choctaw 
+  Processing: OK_Roger Mills 
+  Processing: OK_Custer 
+  Processing: OK_Comanche 
+  Processing: OK_McCurtain 
+  Processing: OK_Harper 
+  Processing: OK_Nowata 
+  Processing: OK_Delaware 
+  Processing: OK_Dewey 
+  Processing: OK_Washington 
+  Processing: OK_Major 
+  Processing: OK_Haskell 
+  Processing: OK_Texas 
+  Processing: OK_Woodward 
+  Processing: OK_Oklahoma 
+  Processing: OK_Johnston 
+  Processing: OK_Latimer 
+  Processing: OK_Grady 
+  Processing: OK_Harmon 
+  Processing: OK_Kay 
+  Processing: OK_Craig 
+  Processing: OK_Tulsa 
+  Processing: OK_McIntosh 
+  Processing: OK_Pottawatomie 
+  Processing: OK_Lincoln 
+  Processing: OK_Alfalfa 
+  Processing: OK_Atoka 
+  Processing: OK_Okmulgee 
+  Processing: OK_Jefferson 
+  Processing: OK_Mayes 
+  Processing: OK_McClain 
+  Processing: OK_Le Flore 
+  Processing: OK_Canadian 
+  Processing: OK_Seminole 
+  Processing: OK_Rogers 
+  Processing: OK_Caddo 
+  Processing: OK_Love 
+  Processing: OK_Woods 
+  Processing: OK_Murray 
+  Processing: OK_Blaine 
+  Processing: OK_Payne 
+  Processing: OK_Cimarron 
+  Processing: OK_Ellis 
+  Processing: OK_Okfuskee 
+  Processing: OK_Creek 
+  Processing: OK_Pontotoc 
+  Processing: OK_Washita 
+  Processing: OK_Pushmataha 
+  Processing: OK_Cleveland 
+  Processing: OK_Noble 
+  Processing: OK_Marshall 
+  Processing: OK_Tillman 
+  Processing: OK_Stephens 
+  Processing: OK_Bryan 
+  Processing: OK_Cherokee 
+  Processing: OK_Osage 
+  Processing: OK_Pawnee 
+  Processing: OK_Coal 
+  Processing: OK_Garfield 
+  Processing: OK_Beckham 
+  Processing: OK_Ottawa 
+  Processing: OK_Logan 
+  Processing: OK_Pittsburg 
+  Processing: OK_Greer 
+  Processing: OK_Cotton 
+  Processing: OK_Garvin 
+  Processing: OK_Beaver 
+  Processing: OK_Kingfisher 
+  Processing: OK_Adair 
+  Processing: OK_Sequoyah 
+  Processing: OK_Wagoner 
+  Processing: OK_Hughes 
+  Processing: OK_Muskogee 
+  Processing: OK_Jackson 
+  Processing: OK_Carter 
+  Processing: OK_Grant 
+  County sections: 77 
+Processing state: TN 
+  Processing: TN_Marshall 
+  Processing: TN_Hamblen 
+  Processing: TN_Cheatham 
+  Processing: TN_Giles 
+  Processing: TN_Union 
+  Processing: TN_Dyer 
+  Processing: TN_Gibson 
+  Processing: TN_Rutherford 
+  Processing: TN_Knox 
+  Processing: TN_Fayette 
+  Processing: TN_Dickson 
+  Processing: TN_Fentress 
+  Processing: TN_Carter 
+  Processing: TN_Washington 
+  Processing: TN_Montgomery 
+  Processing: TN_Grainger 
+  Processing: TN_Lewis 
+  Processing: TN_Sevier 
+  Processing: TN_Polk 
+  Processing: TN_Bedford 
+  Processing: TN_Clay 
+  Processing: TN_Lauderdale 
+  Processing: TN_Roane 
+  Processing: TN_Greene 
+  Processing: TN_Hardeman 
+  Processing: TN_Cumberland 
+  Processing: TN_Blount 
+  Processing: TN_Van Buren 
+  Processing: TN_Obion 
+  Processing: TN_Robertson 
+  Processing: TN_Loudon 
+  Processing: TN_Smith 
+  Processing: TN_Trousdale 
+  Processing: TN_Anderson 
+  Processing: TN_Rhea 
+  Processing: TN_Overton 
+  Processing: TN_Haywood 
+  Processing: TN_Monroe 
+  Processing: TN_Stewart 
+  Processing: TN_Madison 
+  Processing: TN_Sequatchie 
+  Processing: TN_Wilson 
+  Processing: TN_Sullivan 
+  Processing: TN_Jefferson 
+  Processing: TN_Warren 
+  Processing: TN_Lake 
+  Processing: TN_Meigs 
+  Processing: TN_Benton 
+  Processing: TN_Pickett 
+  Processing: TN_Lawrence 
+  Processing: TN_Coffee 
+  Processing: TN_Humphreys 
+  Processing: TN_Unicoi 
+  Processing: TN_DeKalb 
+  Processing: TN_Franklin 
+  Processing: TN_Cannon 
+  Processing: TN_Bledsoe 
+  Processing: TN_Weakley 
+  Processing: TN_Wayne 
+  Processing: TN_Hickman 
+  Processing: TN_Putnam 
+  Processing: TN_Jackson 
+  Processing: TN_McMinn 
+  Processing: TN_Carroll 
+  Processing: TN_Campbell 
+  Processing: TN_Shelby 
+  Processing: TN_Johnson 
+  Processing: TN_Marion 
+  Processing: TN_White 
+  Processing: TN_Sumner 
+  Processing: TN_Grundy 
+  Processing: TN_Bradley 
+  Processing: TN_Lincoln 
+  Processing: TN_Davidson 
+  Processing: TN_Macon 
+  Processing: TN_Cocke 
+  Processing: TN_Hancock 
+  Processing: TN_Hardin 
+  Processing: TN_Claiborne 
+  Processing: TN_Houston 
+  Processing: TN_Hawkins 
+  Processing: TN_Williamson 
+  Processing: TN_Morgan 
+  Processing: TN_Moore 
+  Processing: TN_Tipton 
+  Processing: TN_Henderson 
+  Processing: TN_McNairy 
+  Processing: TN_Scott 
+  Processing: TN_Decatur 
+  Processing: TN_Hamilton 
+  Processing: TN_Chester 
+  Processing: TN_Crockett 
+  Processing: TN_Perry 
+  Processing: TN_Henry 
+  Processing: TN_Maury 
+  County sections: 95 
+Processing state: WV 
+  Processing: WV_Berkeley 
+  Processing: WV_Mineral 
+  Processing: WV_Lewis 
+  Processing: WV_Raleigh 
+  Processing: WV_Preston 
+  Processing: WV_Ohio 
+  Processing: WV_Morgan 
+  Processing: WV_Jefferson 
+  Processing: WV_Mercer 
+  Processing: WV_Hancock 
+  Processing: WV_Kanawha 
+  Processing: WV_Tucker 
+  Processing: WV_Roane 
+  Processing: WV_Grant 
+  Processing: WV_Webster 
+  Processing: WV_Logan 
+  Processing: WV_Pleasants 
+  Processing: WV_Fayette 
+  Processing: WV_Marshall 
+  Processing: WV_Jackson 
+  Processing: WV_Monongalia 
+  Processing: WV_Wood 
+  Processing: WV_Greenbrier 
+  Processing: WV_Ritchie 
+  Processing: WV_Hardy 
+  Processing: WV_Pendleton 
+  Processing: WV_Summers 
+  Processing: WV_Mason 
+  Processing: WV_Gilmer 
+  Processing: WV_Cabell 
+  Processing: WV_Braxton 
+  Processing: WV_Brooke 
+  Processing: WV_Calhoun 
+  Processing: WV_Lincoln 
+  Processing: WV_Wyoming 
+  Processing: WV_Barbour 
+  Processing: WV_Clay 
+  Processing: WV_McDowell 
+  Processing: WV_Harrison 
+  Processing: WV_Wetzel 
+  Processing: WV_Monroe 
+  Processing: WV_Putnam 
+  Processing: WV_Boone 
+  Processing: WV_Randolph 
+  Processing: WV_Marion 
+  Processing: WV_Hampshire 
+  Processing: WV_Doddridge 
+  Processing: WV_Wirt 
+  Processing: WV_Tyler 
+  Processing: WV_Wayne 
+  Processing: WV_Pocahontas 
+  Processing: WV_Taylor 
+  Processing: WV_Mingo 
+  Processing: WV_Upshur 
+  Processing: WV_Nicholas 
+  County sections: 55 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">saveWorkbook</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  wb,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  OUTPUT_XLSX,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">overwrite =</span> <span class="cn">TRUE</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"10-state workbook created!</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>10-state workbook created!</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Number of state tabs:"</span>, <span class="fu">length</span>(state_codes), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Number of state tabs: 10 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"States:"</span>, <span class="fu">paste</span>(state_codes, <span class="at">collapse =</span> <span class="st">", "</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>States: AL, AR, IA, KY, MO, MS, NE, OK, TN, WV </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Output file:"</span>, OUTPUT_XLSX, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Output file: /Users/sophiameyers/Documents/GitHub/USGS-Gages-Research/West_Virginia_Historical_Floods.xlsx </code></pre>
+</div>
+</div>
+<p><strong>Now have a file called Processed/Test_States_Data_Combined.xlsx with every states data collected so far in a workbook* called </strong></p>
+<p><strong>Now creating some graphs in west virginia to see trends over time for each of the rows</strong></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(openxlsx)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>PROJECT_DIR <span class="ot">&lt;-</span> <span class="st">"/Users/sophiameyers/Documents/GitHub/USGS-Gages-Research"</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>SOURCE_XLSX <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  PROJECT_DIR,</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"data"</span>,</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"processed"</span>,</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Test_States_Data_Combined.xlsx"</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>PLOT_DIR <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>  PROJECT_DIR,</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"outputs"</span>,</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"WV_trend_plots"</span></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>  PLOT_DIR,</span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">recursive =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">showWarnings =</span> <span class="cn">FALSE</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(SOURCE_XLSX)) {</span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"Source workbook not found: "</span>, SOURCE_XLSX)</span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Reading West Virginia data...</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading West Virginia data...</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>sheets <span class="ot">&lt;-</span> <span class="fu">getSheetNames</span>(SOURCE_XLSX)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(sheets)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "AL" "AR" "IA" "KY" "MO" "MS" "NE" "OK" "TN" "WV"</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="st">"WV"</span> <span class="sc">%in%</span> sheets) {</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"A worksheet named WV was not found."</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>wv <span class="ot">&lt;-</span> <span class="fu">read.xlsx</span>(</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  SOURCE_XLSX,</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">sheet =</span> <span class="st">"WV"</span>,</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">colNames =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">skipEmptyRows =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">skipEmptyCols =</span> <span class="cn">FALSE</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>metric_rows <span class="ot">&lt;-</span> <span class="fu">which</span>(</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">trimws</span>(<span class="fu">as.character</span>(wv[[<span class="dv">1</span>]])) <span class="sc">==</span> <span class="st">"Metric"</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>  <span class="st">"County tables identified:"</span>,</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">length</span>(metric_rows),</span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>  <span class="st">"</span><span class="sc">\n</span><span class="st">"</span></span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>County tables identified: 55 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(metric_rows) <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"No county Metric headers found."</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>years <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.character</span>(</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unlist</span>(wv[metric_rows[<span class="dv">1</span>], <span class="dv">2</span><span class="sc">:</span><span class="dv">9</span>])</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Decades identified:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Decades identified:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(years)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1950 1960 1970 1980 1990 2000 2010 2020</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>county_tables <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(metric_rows)) {</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  header_row <span class="ot">&lt;-</span> metric_rows[i]</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># County name is three rows above Metric header</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  county_name <span class="ot">&lt;-</span> <span class="fu">as.character</span>(</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    wv[[<span class="dv">1</span>]][header_row <span class="sc">-</span> <span class="dv">3</span>]</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Determine end of county section</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>  next_header <span class="ot">&lt;-</span> <span class="cf">if</span> (i <span class="sc">&lt;</span> <span class="fu">length</span>(metric_rows)) {</span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>    metric_rows[i <span class="sc">+</span> <span class="dv">1</span>]</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(wv) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Metric rows are immediately below header</span></span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>  metric_start <span class="ot">&lt;-</span> header_row <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>  metric_end <span class="ot">&lt;-</span> next_header <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Find first blank row after metric header</span></span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a>  first_blank <span class="ot">&lt;-</span> <span class="fu">which</span>(</span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">is.na</span>(wv[[<span class="dv">1</span>]][metric_start<span class="sc">:</span>metric_end]) <span class="sc">|</span></span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a>      <span class="fu">trimws</span>(<span class="fu">as.character</span>(</span>
+<span id="cb31-27"><a href="#cb31-27" aria-hidden="true" tabindex="-1"></a>        wv[[<span class="dv">1</span>]][metric_start<span class="sc">:</span>metric_end]</span>
+<span id="cb31-28"><a href="#cb31-28" aria-hidden="true" tabindex="-1"></a>      )) <span class="sc">==</span> <span class="st">""</span></span>
+<span id="cb31-29"><a href="#cb31-29" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb31-30"><a href="#cb31-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-31"><a href="#cb31-31" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(first_blank) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb31-32"><a href="#cb31-32" aria-hidden="true" tabindex="-1"></a>    metric_end <span class="ot">&lt;-</span> metric_start <span class="sc">+</span> first_blank[<span class="dv">1</span>] <span class="sc">-</span> <span class="dv">2</span></span>
+<span id="cb31-33"><a href="#cb31-33" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb31-34"><a href="#cb31-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-35"><a href="#cb31-35" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (metric_end <span class="sc">&lt;</span> metric_start) <span class="cf">next</span></span>
+<span id="cb31-36"><a href="#cb31-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-37"><a href="#cb31-37" aria-hidden="true" tabindex="-1"></a>  metric_data <span class="ot">&lt;-</span> wv[</span>
+<span id="cb31-38"><a href="#cb31-38" aria-hidden="true" tabindex="-1"></a>    metric_start<span class="sc">:</span>metric_end,</span>
+<span id="cb31-39"><a href="#cb31-39" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>,</span>
+<span id="cb31-40"><a href="#cb31-40" aria-hidden="true" tabindex="-1"></a>    drop <span class="ot">=</span> <span class="cn">FALSE</span></span>
+<span id="cb31-41"><a href="#cb31-41" aria-hidden="true" tabindex="-1"></a>  ]</span>
+<span id="cb31-42"><a href="#cb31-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-43"><a href="#cb31-43" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(metric_data))) {</span>
+<span id="cb31-44"><a href="#cb31-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-45"><a href="#cb31-45" aria-hidden="true" tabindex="-1"></a>    metric_name <span class="ot">&lt;-</span> <span class="fu">as.character</span>(</span>
+<span id="cb31-46"><a href="#cb31-46" aria-hidden="true" tabindex="-1"></a>      metric_data[[<span class="dv">1</span>]][j]</span>
+<span id="cb31-47"><a href="#cb31-47" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb31-48"><a href="#cb31-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-49"><a href="#cb31-49" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">is.na</span>(metric_name) <span class="sc">||</span> <span class="fu">trimws</span>(metric_name) <span class="sc">==</span> <span class="st">""</span>) {</span>
+<span id="cb31-50"><a href="#cb31-50" aria-hidden="true" tabindex="-1"></a>      <span class="cf">next</span></span>
+<span id="cb31-51"><a href="#cb31-51" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb31-52"><a href="#cb31-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-53"><a href="#cb31-53" aria-hidden="true" tabindex="-1"></a>    values <span class="ot">&lt;-</span> <span class="fu">suppressWarnings</span>(</span>
+<span id="cb31-54"><a href="#cb31-54" aria-hidden="true" tabindex="-1"></a>      <span class="fu">as.numeric</span>(</span>
+<span id="cb31-55"><a href="#cb31-55" aria-hidden="true" tabindex="-1"></a>        <span class="fu">as.character</span>(</span>
+<span id="cb31-56"><a href="#cb31-56" aria-hidden="true" tabindex="-1"></a>          <span class="fu">unlist</span>(metric_data[j, <span class="dv">2</span><span class="sc">:</span><span class="dv">9</span>])</span>
+<span id="cb31-57"><a href="#cb31-57" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb31-58"><a href="#cb31-58" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb31-59"><a href="#cb31-59" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb31-60"><a href="#cb31-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-61"><a href="#cb31-61" aria-hidden="true" tabindex="-1"></a>    county_tables[[<span class="fu">length</span>(county_tables) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb31-62"><a href="#cb31-62" aria-hidden="true" tabindex="-1"></a>      <span class="at">County =</span> county_name,</span>
+<span id="cb31-63"><a href="#cb31-63" aria-hidden="true" tabindex="-1"></a>      <span class="at">Metric =</span> metric_name,</span>
+<span id="cb31-64"><a href="#cb31-64" aria-hidden="true" tabindex="-1"></a>      <span class="at">Year =</span> years,</span>
+<span id="cb31-65"><a href="#cb31-65" aria-hidden="true" tabindex="-1"></a>      <span class="at">Value =</span> values</span>
+<span id="cb31-66"><a href="#cb31-66" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb31-67"><a href="#cb31-67" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb31-68"><a href="#cb31-68" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb31-69"><a href="#cb31-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-70"><a href="#cb31-70" aria-hidden="true" tabindex="-1"></a>wv_long <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(county_tables)</span>
+<span id="cb31-71"><a href="#cb31-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-72"><a href="#cb31-72" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Extracted records:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Extracted records:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">dim</span>(wv_long))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 3080    4</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Metrics identified:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Metrics identified:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">unique</span>(wv_long<span class="sc">$</span>Metric))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Population"              "Active streamgages"     
+[3] "Accumulated gage-years"  "FEMA flood declarations"
+[5] "NFIP paid claims"        "NFIP dollars paid"      
+[7] "NOAA flood events"      </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>wv_statewide <span class="ot">&lt;-</span> wv_long <span class="sc">%&gt;%</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Metric, Year) <span class="sc">%&gt;%</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Value =</span> <span class="cf">if</span> (<span class="fu">all</span>(<span class="fu">is.na</span>(Value))) {</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>      <span class="cn">NA_real_</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sum</span>(Value, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">Counties_Reporting =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(Value)),</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Statewide results:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Statewide results:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  wv_statewide,</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">n =</span> <span class="cn">Inf</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 56 × 4
+   Metric                   Year      Value Counties_Reporting
+   &lt;chr&gt;                   &lt;dbl&gt;      &lt;dbl&gt;              &lt;int&gt;
+ 1 Accumulated gage-years   1950      1855                   1
+ 2 Accumulated gage-years   1960      2742                   1
+ 3 Accumulated gage-years   1970      3666                   1
+ 4 Accumulated gage-years   1980      4748                   1
+ 5 Accumulated gage-years   1990      5514                   1
+ 6 Accumulated gage-years   2000      6173                   1
+ 7 Accumulated gage-years   2010      6853                   1
+ 8 Accumulated gage-years   2020      7691                   1
+ 9 Active streamgages       1950        94                   1
+10 Active streamgages       1960        88                   1
+11 Active streamgages       1970       105                   1
+12 Active streamgages       1980       105                   1
+13 Active streamgages       1990        74                   1
+14 Active streamgages       2000        64                   1
+15 Active streamgages       2010        74                   1
+16 Active streamgages       2020        95                   1
+17 FEMA flood declarations  1950        NA                   0
+18 FEMA flood declarations  1960        NA                   0
+19 FEMA flood declarations  1970        37                   1
+20 FEMA flood declarations  1980        56                   1
+21 FEMA flood declarations  1990        48                   1
+22 FEMA flood declarations  2000        61                   1
+23 FEMA flood declarations  2010        26                   1
+24 FEMA flood declarations  2020        50                   1
+25 NFIP dollars paid        1950        NA                   0
+26 NFIP dollars paid        1960        NA                   0
+27 NFIP dollars paid        1970        NA                   0
+28 NFIP dollars paid        1980        NA                   0
+29 NFIP dollars paid        1990  46663299.                  1
+30 NFIP dollars paid        2000  86098974.                  1
+31 NFIP dollars paid        2010 115797700.                  1
+32 NFIP dollars paid        2020  83132939.                  1
+33 NFIP paid claims         1950        NA                   0
+34 NFIP paid claims         1960        NA                   0
+35 NFIP paid claims         1970        NA                   0
+36 NFIP paid claims         1980        NA                   0
+37 NFIP paid claims         1990      4062                   1
+38 NFIP paid claims         2000      5827                   1
+39 NFIP paid claims         2010      7098                   1
+40 NFIP paid claims         2020      2605                   1
+41 NOAA flood events        1950        NA                   0
+42 NOAA flood events        1960        NA                   0
+43 NOAA flood events        1970        NA                   0
+44 NOAA flood events        1980        NA                   0
+45 NOAA flood events        1990        NA                   0
+46 NOAA flood events        2000       406                   1
+47 NOAA flood events        2010       665                   1
+48 NOAA flood events        2020      1199                   1
+49 Population               1950        NA                   0
+50 Population               1960    136992                   1
+51 Population               1970    594463                   1
+52 Population               1980   1080634                   1
+53 Population               1990   1793477                   1
+54 Population               2000   1808344                   1
+55 Population               2010   1852994                   1
+56 Population               2020   1793716                   1</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  wv_statewide,</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">file.path</span>(PLOT_DIR, <span class="st">"WV_statewide_trends.csv"</span>),</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>plots <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>column_metrics <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"FEMA flood declarations"</span>,</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"NFIP paid claims"</span>,</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"NOAA flood events"</span></span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (metric <span class="cf">in</span> <span class="fu">unique</span>(wv_statewide<span class="sc">$</span>Metric)) {</span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>  plot_data <span class="ot">&lt;-</span> wv_statewide <span class="sc">%&gt;%</span></span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Metric <span class="sc">==</span> metric) <span class="sc">%&gt;%</span></span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(Year)</span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (metric <span class="sc">%in%</span> column_metrics) {</span>
+<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-24"><a href="#cb43-24" aria-hidden="true" tabindex="-1"></a>    p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(</span>
+<span id="cb43-25"><a href="#cb43-25" aria-hidden="true" tabindex="-1"></a>      plot_data,</span>
+<span id="cb43-26"><a href="#cb43-26" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> Value)</span>
+<span id="cb43-27"><a href="#cb43-27" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb43-28"><a href="#cb43-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_col</span>(</span>
+<span id="cb43-29"><a href="#cb43-29" aria-hidden="true" tabindex="-1"></a>        <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
+<span id="cb43-30"><a href="#cb43-30" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb43-31"><a href="#cb43-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-32"><a href="#cb43-32" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb43-33"><a href="#cb43-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-34"><a href="#cb43-34" aria-hidden="true" tabindex="-1"></a>    p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(</span>
+<span id="cb43-35"><a href="#cb43-35" aria-hidden="true" tabindex="-1"></a>      plot_data,</span>
+<span id="cb43-36"><a href="#cb43-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> Value)</span>
+<span id="cb43-37"><a href="#cb43-37" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb43-38"><a href="#cb43-38" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_line</span>(</span>
+<span id="cb43-39"><a href="#cb43-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">linewidth =</span> <span class="fl">0.9</span>,</span>
+<span id="cb43-40"><a href="#cb43-40" aria-hidden="true" tabindex="-1"></a>        <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
+<span id="cb43-41"><a href="#cb43-41" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">+</span></span>
+<span id="cb43-42"><a href="#cb43-42" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>(</span>
+<span id="cb43-43"><a href="#cb43-43" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> <span class="fl">2.5</span>,</span>
+<span id="cb43-44"><a href="#cb43-44" aria-hidden="true" tabindex="-1"></a>        <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
+<span id="cb43-45"><a href="#cb43-45" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb43-46"><a href="#cb43-46" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb43-47"><a href="#cb43-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-48"><a href="#cb43-48" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> p <span class="sc">+</span></span>
+<span id="cb43-49"><a href="#cb43-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb43-50"><a href="#cb43-50" aria-hidden="true" tabindex="-1"></a>      <span class="at">breaks =</span> years</span>
+<span id="cb43-51"><a href="#cb43-51" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb43-52"><a href="#cb43-52" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb43-53"><a href="#cb43-53" aria-hidden="true" tabindex="-1"></a>      <span class="at">title =</span> <span class="fu">paste</span>(metric, <span class="st">"- West Virginia"</span>),</span>
+<span id="cb43-54"><a href="#cb43-54" aria-hidden="true" tabindex="-1"></a>      <span class="at">subtitle =</span> <span class="st">"Statewide sum of county-level values"</span>,</span>
+<span id="cb43-55"><a href="#cb43-55" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="st">"Decade"</span>,</span>
+<span id="cb43-56"><a href="#cb43-56" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> metric</span>
+<span id="cb43-57"><a href="#cb43-57" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb43-58"><a href="#cb43-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb43-59"><a href="#cb43-59" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
+<span id="cb43-60"><a href="#cb43-60" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.title =</span> <span class="fu">element_text</span>(</span>
+<span id="cb43-61"><a href="#cb43-61" aria-hidden="true" tabindex="-1"></a>        <span class="at">face =</span> <span class="st">"bold"</span>,</span>
+<span id="cb43-62"><a href="#cb43-62" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> <span class="dv">14</span></span>
+<span id="cb43-63"><a href="#cb43-63" aria-hidden="true" tabindex="-1"></a>      ),</span>
+<span id="cb43-64"><a href="#cb43-64" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(</span>
+<span id="cb43-65"><a href="#cb43-65" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> <span class="dv">10</span></span>
+<span id="cb43-66"><a href="#cb43-66" aria-hidden="true" tabindex="-1"></a>      ),</span>
+<span id="cb43-67"><a href="#cb43-67" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(</span>
+<span id="cb43-68"><a href="#cb43-68" aria-hidden="true" tabindex="-1"></a>        <span class="at">angle =</span> <span class="dv">45</span>,</span>
+<span id="cb43-69"><a href="#cb43-69" aria-hidden="true" tabindex="-1"></a>        <span class="at">hjust =</span> <span class="dv">1</span></span>
+<span id="cb43-70"><a href="#cb43-70" aria-hidden="true" tabindex="-1"></a>      ),</span>
+<span id="cb43-71"><a href="#cb43-71" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb43-72"><a href="#cb43-72" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb43-73"><a href="#cb43-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-74"><a href="#cb43-74" aria-hidden="true" tabindex="-1"></a>  plots[[metric]] <span class="ot">&lt;-</span> p</span>
+<span id="cb43-75"><a href="#cb43-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-76"><a href="#cb43-76" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(p)</span>
+<span id="cb43-77"><a href="#cb43-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-78"><a href="#cb43-78" aria-hidden="true" tabindex="-1"></a>  safe_name <span class="ot">&lt;-</span> <span class="fu">str_replace_all</span>(</span>
+<span id="cb43-79"><a href="#cb43-79" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tolower</span>(metric),</span>
+<span id="cb43-80"><a href="#cb43-80" aria-hidden="true" tabindex="-1"></a>    <span class="st">"[^a-z0-9]+"</span>,</span>
+<span id="cb43-81"><a href="#cb43-81" aria-hidden="true" tabindex="-1"></a>    <span class="st">"_"</span></span>
+<span id="cb43-82"><a href="#cb43-82" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb43-83"><a href="#cb43-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-84"><a href="#cb43-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggsave</span>(</span>
+<span id="cb43-85"><a href="#cb43-85" aria-hidden="true" tabindex="-1"></a>    <span class="at">filename =</span> <span class="fu">file.path</span>(</span>
+<span id="cb43-86"><a href="#cb43-86" aria-hidden="true" tabindex="-1"></a>      PLOT_DIR,</span>
+<span id="cb43-87"><a href="#cb43-87" aria-hidden="true" tabindex="-1"></a>      <span class="fu">paste0</span>(<span class="st">"WV_"</span>, safe_name, <span class="st">".png"</span>)</span>
+<span id="cb43-88"><a href="#cb43-88" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb43-89"><a href="#cb43-89" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot =</span> p,</span>
+<span id="cb43-90"><a href="#cb43-90" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="dv">9</span>,</span>
+<span id="cb43-91"><a href="#cb43-91" aria-hidden="true" tabindex="-1"></a>    <span class="at">height =</span> <span class="dv">5</span>,</span>
+<span id="cb43-92"><a href="#cb43-92" aria-hidden="true" tabindex="-1"></a>    <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb43-93"><a href="#cb43-93" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb43-94"><a href="#cb43-94" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Combining-data-into-tables-for-WV_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Combining-data-into-tables-for-WV_files/figure-html/unnamed-chunk-4-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Combining-data-into-tables-for-WV_files/figure-html/unnamed-chunk-4-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Combining-data-into-tables-for-WV_files/figure-html/unnamed-chunk-4-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Combining-data-into-tables-for-WV_files/figure-html/unnamed-chunk-4-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Combining-data-into-tables-for-WV_files/figure-html/unnamed-chunk-4-6.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Combining-data-into-tables-for-WV_files/figure-html/unnamed-chunk-4-7.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

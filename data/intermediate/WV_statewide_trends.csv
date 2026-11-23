@@ -1,0 +1,57 @@
+"Metric","Year","Value","Counties_Reporting"
+"Accumulated gage-years",1950,1855,1
+"Accumulated gage-years",1960,2742,1
+"Accumulated gage-years",1970,3666,1
+"Accumulated gage-years",1980,4748,1
+"Accumulated gage-years",1990,5514,1
+"Accumulated gage-years",2000,6173,1
+"Accumulated gage-years",2010,6853,1
+"Accumulated gage-years",2020,7691,1
+"Active streamgages",1950,94,1
+"Active streamgages",1960,88,1
+"Active streamgages",1970,105,1
+"Active streamgages",1980,105,1
+"Active streamgages",1990,74,1
+"Active streamgages",2000,64,1
+"Active streamgages",2010,74,1
+"Active streamgages",2020,95,1
+"FEMA flood declarations",1950,NA,0
+"FEMA flood declarations",1960,NA,0
+"FEMA flood declarations",1970,37,1
+"FEMA flood declarations",1980,56,1
+"FEMA flood declarations",1990,48,1
+"FEMA flood declarations",2000,61,1
+"FEMA flood declarations",2010,26,1
+"FEMA flood declarations",2020,50,1
+"NFIP dollars paid",1950,NA,0
+"NFIP dollars paid",1960,NA,0
+"NFIP dollars paid",1970,NA,0
+"NFIP dollars paid",1980,NA,0
+"NFIP dollars paid",1990,46663298.51,1
+"NFIP dollars paid",2000,86098973.67,1
+"NFIP dollars paid",2010,115797700.2,1
+"NFIP dollars paid",2020,83132939.38,1
+"NFIP paid claims",1950,NA,0
+"NFIP paid claims",1960,NA,0
+"NFIP paid claims",1970,NA,0
+"NFIP paid claims",1980,NA,0
+"NFIP paid claims",1990,4062,1
+"NFIP paid claims",2000,5827,1
+"NFIP paid claims",2010,7098,1
+"NFIP paid claims",2020,2605,1
+"NOAA flood events",1950,NA,0
+"NOAA flood events",1960,NA,0
+"NOAA flood events",1970,NA,0
+"NOAA flood events",1980,NA,0
+"NOAA flood events",1990,NA,0
+"NOAA flood events",2000,406,1
+"NOAA flood events",2010,665,1
+"NOAA flood events",2020,1199,1
+"Population",1950,NA,0
+"Population",1960,136992,1
+"Population",1970,594463,1
+"Population",1980,1080634,1
+"Population",1990,1793477,1
+"Population",2000,1808344,1
+"Population",2010,1852994,1
+"Population",2020,1793716,1
