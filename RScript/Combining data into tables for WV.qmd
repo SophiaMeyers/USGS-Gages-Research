@@ -1,0 +1,119 @@
+---
+title: "Combining data into tables for WV"
+format: html
+---
+
+**This is processing a generated xlxs spreadsheet for all 10 states counties data collected and focusing just on wv to see how we might analyze what weve collected**
+
+```{r}
+library(openxlsx)
+```
+
+```{r}
+PROJECT_DIR <- "/Users/sophiameyers/Documents/GitHub/USGS-Gages-Research"
+
+# Generated workbook containing all 10 states
+SOURCE_XLSX <- file.path(
+  PROJECT_DIR,
+  "data",
+  "intermediate",
+  "GENERATED_Historical_Floods_Population_Streamgages_10_States.xlsx"
+)
+
+OUTPUT_XLSX <- file.path(
+  PROJECT_DIR,
+  "West_Virginia_Historical_Floods.xlsx"
+)
+```
+
+
+
+```{r}
+
+all_sheets <- getSheetNames(SOURCE_XLSX)
+
+state_codes <- unique(
+  substr(
+    all_sheets[grepl("^[A-Z]{2}_", all_sheets)],
+    1,
+    2
+  )
+)
+
+state_codes <- sort(state_codes)
+
+cat("States identified:", length(state_codes), "\n")
+print(state_codes)
+
+
+wb <- createWorkbook()
+
+
+for (state in state_codes) {
+
+  cat("Processing state:", state, "\n")
+
+  state_sheets <- all_sheets[
+    grepl(paste0("^", state, "_"), all_sheets)
+  ]
+
+  addWorksheet(wb, state)
+
+  current_row <- 1
+
+  for (sheet_name in state_sheets) {
+
+    cat("  Processing:", sheet_name, "\n")
+
+    county_data <- read.xlsx(
+      SOURCE_XLSX,
+      sheet = sheet_name,
+      rows = 1:13,
+      cols = 1:9,
+      colNames = FALSE,
+      skipEmptyRows = FALSE,
+      skipEmptyCols = FALSE
+    )
+
+    county_data <- as.data.frame(county_data)
+
+    while (ncol(county_data) < 9) {
+      county_data[[ncol(county_data) + 1]] <- NA
+    }
+
+    writeData(
+      wb,
+      sheet = state,
+      x = county_data,
+      startRow = current_row,
+      startCol = 1,
+      colNames = FALSE,
+      rowNames = FALSE
+    )
+
+    current_row <- current_row + 15
+  }
+
+  cat(
+    "  County sections:",
+    length(state_sheets),
+    "\n"
+  )
+}
+
+
+saveWorkbook(
+  wb,
+  OUTPUT_XLSX,
+  overwrite = TRUE
+)
+
+cat("10-state workbook created!\n")
+cat("Number of state tabs:", length(state_codes), "\n")
+cat("States:", paste(state_codes, collapse = ", "), "\n")
+cat("Output file:", OUTPUT_XLSX, "\n")
+
+```
+
+
+
