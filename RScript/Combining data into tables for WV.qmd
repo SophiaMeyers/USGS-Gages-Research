@@ -898,6 +898,359 @@ for (metric in unique(wv_long$Metric)) {
 
 ```
 
+**Now have a new folder in gages called graphics with WV_trend_Plots and inside statewide and county separated with plots for each of the rows of data in test_states_Data_combined**
+
+
+**Now plotting the trends on two graphs for the most accumulated streamgage data and the least**
+
+```{r}
+
+PROJECT_DIR <- "/Users/sophiameyers/Documents/GitHub/USGS-Gages-Research"
+
+COUNTY_PLOT_DIR <- file.path(
+  PROJECT_DIR,
+  "graphics",
+  "WV_trend_Plots",
+  "county"
+)
+
+DATA_OUTPUT_DIR <- file.path(
+  PROJECT_DIR,
+  "data",
+  "processed"
+)
+
+dir.create(
+  COUNTY_PLOT_DIR,
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+
+dir.create(
+  DATA_OUTPUT_DIR,
+  recursive = TRUE,
+  showWarnings = FALSE
+)
 
 
 
+accumulated_metric <- unique(
+  wv_long$Metric[
+    str_detect(
+      str_to_lower(wv_long$Metric),
+      "accumulated.*gage|gage.*years"
+    )
+  ]
+)
+
+if (length(accumulated_metric) != 1) {
+  stop(
+    "Could not uniquely identify accumulated gage-years. Found: ",
+    paste(accumulated_metric, collapse = ", ")
+  )
+}
+
+gage_data <- wv_long %>%
+  filter(
+    Metric == accumulated_metric[1],
+    !is.na(Value)
+  )
+
+ranking_year <- max(
+  gage_data$Year,
+  na.rm = TRUE
+)
+
+cat("\nRanking counties using:", ranking_year, "\n")
+
+
+county_ranking <- gage_data %>%
+  filter(Year == ranking_year) %>%
+  group_by(County) %>%
+  summarise(
+    Accumulated_Gage_Years = max(Value),
+    .groups = "drop"
+  ) %>%
+  arrange(
+    desc(Accumulated_Gage_Years),
+    County
+  )
+
+N_COUNTIES <- 10
+
+most_gages <- county_ranking %>%
+  slice_head(n = N_COUNTIES) %>%
+  pull(County)
+
+least_gages <- county_ranking %>%
+  arrange(
+    Accumulated_Gage_Years,
+    County
+  ) %>%
+  slice_head(n = N_COUNTIES) %>%
+  pull(County)
+
+write.csv(
+  county_ranking,
+  file.path(
+    DATA_OUTPUT_DIR,
+    "WV_accumulated_gage_years_county_ranking.csv"
+  ),
+  row.names = FALSE
+)
+
+county_groups <- data.frame(
+  County = c(most_gages, least_gages),
+  Monitoring_Group = c(
+    rep("Most monitored", length(most_gages)),
+    rep("Least monitored", length(least_gages))
+  )
+)
+
+cat("Most monitored counties:\n")
+print(most_gages)
+
+cat("Least monitored counties:\n")
+print(least_gages)
+
+
+outcome_data <- wv_long %>%
+  filter(
+    Metric != accumulated_metric[1],
+    !str_detect(
+      str_to_lower(Metric),
+      "active.*streamgage|streamgage.*active"
+    )
+  ) %>%
+  inner_join(
+    county_groups,
+    by = "County"
+  )
+
+# Save underlying comparison data
+write.csv(
+  outcome_data,
+  file.path(
+    DATA_OUTPUT_DIR,
+    "WV_high_low_monitoring_outcome_data.csv"
+  ),
+  row.names = FALSE,
+  na = ""
+)
+
+
+
+trend_summary <- outcome_data %>%
+  group_by(
+    Monitoring_Group,
+    Metric,
+    Year
+  ) %>%
+  summarise(
+    Mean_Value = if (all(is.na(Value))) {
+      NA_real_
+    } else {
+      mean(Value, na.rm = TRUE)
+    },
+
+    Counties_Reporting = sum(!is.na(Value)),
+
+    .groups = "drop"
+  )
+
+# Save summary
+write.csv(
+  trend_summary,
+  file.path(
+    DATA_OUTPUT_DIR,
+    "WV_high_low_monitoring_trend_summary.csv"
+  ),
+  row.names = FALSE,
+  na = ""
+)
+
+
+
+trend_plot <- ggplot(
+  trend_summary,
+  aes(
+    x = Year,
+    y = Mean_Value,
+    color = Monitoring_Group,
+    group = Monitoring_Group
+  )
+) +
+
+  geom_line(
+    linewidth = 1.1,
+    na.rm = TRUE
+  ) +
+
+  geom_point(
+    size = 2.5,
+    na.rm = TRUE
+  ) +
+
+  facet_wrap(
+    ~ Metric,
+    scales = "free_y",
+    ncol = 2
+  ) +
+
+  scale_x_continuous(
+    breaks = years
+  ) +
+
+  scale_color_manual(
+    values = c(
+      "Most monitored" = "#2878B5",
+      "Least monitored" = "#E28E2C"
+    )
+  ) +
+
+  labs(
+    title = "Historical Flood and Population Trends by Monitoring Level",
+    subtitle = paste(
+      "Average county values for the 10 highest- and lowest-monitoring counties",
+      "| Ranking based on",
+      ranking_year
+    ),
+    x = "Decade",
+    y = "Average County Value",
+    color = "Monitoring Group",
+    caption = paste(
+      "Each point represents the average across counties with reported data.",
+      "Y-axis scales differ between metrics."
+    )
+  ) +
+
+  theme_minimal() +
+
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 14
+    ),
+
+    plot.subtitle = element_text(
+      size = 10
+    ),
+
+    strip.text = element_text(
+      face = "bold",
+      size = 10
+    ),
+
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1,
+      size = 8
+    ),
+
+    legend.position = "bottom",
+
+    panel.grid.minor = element_blank()
+  )
+
+print(trend_plot)
+
+ggsave(
+  filename = file.path(
+    COUNTY_PLOT_DIR,
+    "WV_high_vs_low_monitoring_outcome_trends.png"
+  ),
+  plot = trend_plot,
+  width = 13,
+  height = 10,
+  dpi = 300
+)
+
+
+coverage_plot <- ggplot(
+  trend_summary,
+  aes(
+    x = Year,
+    y = Counties_Reporting,
+    color = Monitoring_Group,
+    group = Monitoring_Group
+  )
+) +
+
+  geom_line(
+    linewidth = 1.1
+  ) +
+
+  geom_point(
+    size = 2.5
+  ) +
+
+  facet_wrap(
+    ~ Metric,
+    ncol = 2
+  ) +
+
+  scale_x_continuous(
+    breaks = years
+  ) +
+
+  scale_y_continuous(
+    breaks = 0:N_COUNTIES,
+    limits = c(0, N_COUNTIES)
+  ) +
+
+  scale_color_manual(
+    values = c(
+      "Most monitored" = "#2878B5",
+      "Least monitored" = "#E28E2C"
+    )
+  ) +
+
+  labs(
+    title = "Historical Data Coverage by Monitoring Level",
+    subtitle = "Number of counties with reported values in each decade",
+    x = "Decade",
+    y = "Counties Reporting (out of 10)",
+    color = "Monitoring Group"
+  ) +
+
+  theme_minimal() +
+
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 14
+    ),
+
+    strip.text = element_text(
+      face = "bold",
+      size = 10
+    ),
+
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1,
+      size = 8
+    ),
+
+    legend.position = "bottom",
+
+    panel.grid.minor = element_blank()
+  )
+
+print(coverage_plot)
+
+ggsave(
+  filename = file.path(
+    COUNTY_PLOT_DIR,
+    "WV_high_vs_low_monitoring_data_coverage.png"
+  ),
+  plot = coverage_plot,
+  width = 13,
+  height = 10,
+  dpi = 300
+)
+
+
+
+```
+**Now have a top 10 gage activity accumulated vs bottom 10 activity accumulated compared to the other data in Graphics/WV_trend_plots/Accumulated_GageActivity_Comparison_Graphs**
